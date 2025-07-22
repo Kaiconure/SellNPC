@@ -31,3 +31,11 @@ Here's a list of the currently supported commands:
 - `add <item_name>` - This adds an item to your auto-sell list. Run as `sellnpc auto add bone chip`.
 - `remove <item_name>` - This removes an item from your auto-sell list. Run as `sellnpc auto remove beehive chip`.
 
+The new features are fully compatible with multibox setups. This means you can run something like `send @all sellnpc auto add treant bulb` and there will be no risk of cross-corruption of data.
+
+---
+
+Keep in mind that the auto-sell list is OFF by default. You'll need to run `sellnpc auto on` to use it. 
+
+**There's no way to recover items that were accidentally sold to an NPC, so use it at your own risk. I will not be held responsible for mistakes made using this addon.**
+

@@ -79,7 +79,7 @@ function get_sorted_item_names(item_list, filter)
     local names = {}
 
     if type(filter) == 'string' and filter ~= '' then
-        filter = string.format('^%s', filter):lower()
+        filter = filter:lower()
     else
         filter = nil
     end
@@ -91,7 +91,7 @@ function get_sorted_item_names(item_list, filter)
             local item = res_items[id or -1]
             if item then
                 local name = item.name
-                if filter == nil or string.match(name:lower(), filter) then
+                if filter == nil or string.find(name:lower(), filter) then
                     if type(name) == 'string' then
                         names[#names + 1] = name
                     end

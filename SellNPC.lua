@@ -1,5 +1,5 @@
 _addon.command = 'SellNPC'
-_addon.version = '2.1.202507.21'
+_addon.version = '2.1.202507.22'
 _addon.author = 'Kaiconure,Ivaar'
 _addon.name = 'SellNPC'
 
@@ -75,16 +75,49 @@ function merge_into_sales_que(item_list)
     end
 end
 
+function get_sorted_item_names(item_list, filter)
+    local names = {}
+
+    if type(filter) == 'string' and filter ~= '' then
+        filter = string.format('^%s', filter):lower()
+    else
+        filter = nil
+    end
+
+    -- Create a list of item names
+    for _id, _ in pairs(item_list or {}) do
+        local id = tonumber(_id)
+        if id then
+            local item = res_items[id or -1]
+            if item then
+                local name = item.name
+                if filter == nil or string.match(name:lower(), filter) then
+                    if type(name) == 'string' then
+                        names[#names + 1] = name
+                    end
+                end
+            end
+        end
+    end
+
+    -- Sort the item name list case-insensitively
+    table.sort(names, function (a, b)
+        return string.lower(a) < string.lower(b)
+    end)
+
+    return names
+end
+
 function sell_all_items()
     -- If we're using the auto list, merge those items into the sales queue now
-    if settings and settings.auto and settings.auto_list then
+    if settings and settings.auto == true and type(settings.auto_list) == 'table' then
         merge_into_sales_que(settings.auto_list)
     end
 
     local num = 0
     for index = 1, 80 do 
         local item = windower.ffxi.get_items(0,index)
-        
+
         if item and sales_que[item.id] and item.status == 0 then
             windower.packets.inject_outgoing(0x084,string.char(0x084,0x06,0,0,item.count,0,0,0,item.id%256,math.floor(item.id/256)%256,index,0))
             windower.packets.inject_outgoing(0x085,string.char(0x085,0x04,0,0,1,0,0,0))
@@ -129,24 +162,31 @@ function sell_npc_auto_command(command, ...)
             --
             local num_total = 0
             local num_added = 0
-            local message = '%s: %s':format(_addon.name, colorize(89, 'Auto drop list: ', 89))
+            local filter = table.concat(commands, ' ')
 
-            for _id, val in pairs(settings.auto_list) do
-                local id = tonumber(_id)
-                if id then
-                    local item = res_items[id]
-                    if item then
-                        if num_added > 0 and (num_added % 5) == 0 then
-                            windower.add_to_chat(207, message .. '\n')
-                            message = '  '
-                            num_added = 0
-                        end
+            local names = get_sorted_item_names(settings.auto_list, filter)
+            local count = #names
 
-                        message = message .. '%s  ':format(colorize(2, item.name, 89))
-                        num_added = num_added + 1
-                        num_total = num_total + 1
-                    end
+            local message = '%s: %s':format(_addon.name, colorize(89, 'Showing %s from the auto-sell list: \n  ':format(colorize(
+                    2,
+                    '%d matching item%s':format(count, count ~= 1 and 's' or ''),
+                    89
+                )), 
+            89))
+
+            for i, name in ipairs(names) do
+                if num_added > 0 and (num_added % 5) == 0 then
+                    windower.add_to_chat(207, message .. '\n')
+                    message = '  '
+                    num_added = 0
                 end
+
+                message = message .. '%s%s':format(
+                    colorize(2, name, 89),
+                    i < count and ', ' or ' '
+                )
+                num_added = num_added + 1
+                num_total = num_total + 1
             end
 
             if num_added > 0 or num_total == 0 then
@@ -159,12 +199,12 @@ function sell_npc_auto_command(command, ...)
             local name = table.concat(commands, ' ')
             local item = is_valid_item(name)
             if item then
-                windower.add_to_chat(207, '%s: adding "%s" to the auto-sell list.':format(_addon.name, item.name))
+                windower.add_to_chat(207, '%s: Adding "%s" to the auto-sell list.':format(_addon.name, item.name))
                 settings.auto_list[item.id] = {id = item.id, name = item.name}
 
                 save_changes = true
             else
-                windower.add_to_chat(207, '%s: "%s" not a valid item name.':format(_addon.name, name))
+                windower.add_to_chat(207, '%s: "%s" is not a valid item name.':format(_addon.name, name))
             end
         elseif command == 'remove' then
             --
@@ -178,7 +218,7 @@ function sell_npc_auto_command(command, ...)
                 
                 save_changes = true
             else
-                windower.add_to_chat(207, '%s: "%s" not a valid item name.':format(_addon.name, name))
+                windower.add_to_chat(207, '%s: "%s" is not a valid item name.':format(_addon.name, name))
             end
         else
             windower.add_to_chat(207, '%s: The auto-sell list is: %s':format(

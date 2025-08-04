@@ -27,7 +27,7 @@ Here's a list of the currently supported commands:
 
 - `on` - This turns the auto-sell feature on. Run as `sellnpc auto on` or view the current status with `sellnpc auto`.
 - `off` - This turns the auto-sell feature off. Run as `sellnpc auto off` or view the current status with `sellnpc auto`.
-- `list` - This lists all items you have in your auto-sell list. Run as `sellnpc auto list`.
+- `list [<filter>]` - This lists all items you have in your auto-sell list, in alphabetical order. Run as `sellnpc auto list`. If you specify a filter, only auto-sell items with that filter somewhere in the name will be shown. For exmple, `sellnpc auto list ore` will show all ores you've got configured for auto-sale. Of course, you'd _also_ see things like "Mantic**ore** Hide".
 - `add <item_name>` - This adds an item to your auto-sell list. Run as `sellnpc auto add bone chip`.
 - `remove <item_name>` - This removes an item from your auto-sell list. Run as `sellnpc auto remove beehive chip`.
 

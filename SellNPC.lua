@@ -1,5 +1,5 @@
 _addon.command = 'SellNPC'
-_addon.version = '2.1.202507.22'
+_addon.version = '2.1.202508.03'
 _addon.author = 'Kaiconure,Ivaar'
 _addon.name = 'SellNPC'
 

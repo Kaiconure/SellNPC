@@ -11,7 +11,16 @@ Items are removed from queue once selling has completed.
 
 Will not try to sell items equipped, in bazaar or that can not be sold to NPC vendors.
 
-##### If there has been a mainenance or update to the game make sure windowers resource files have been updated to reflect new items added.
+**NEW** Any item name can now be replaced with an item *list*. Items should be separated with the vertical bar `|` character, typically found above the enter key. *(Note: More common separators, such as `;` and `,` already carry other meaning and would lead to problems with the addon.)* What this means is you can run batch commands such as the following to add multiple items at once:
+
+```
+sellnpc auto add seashell | crab shell | pugil scale
+sellnpc beastman blood | bat fang
+```
+
+
+
+##### If there has been a maintenance or update to the game make sure Windower's resource files have been updated to reflect new items added.
 
 ### Auto-sell
 

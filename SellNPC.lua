@@ -39,6 +39,60 @@ function colorize(color, message, returnColor)
         .. string.char(0x1E, returnColor)
 end
 
+------------------------------------------------------------------------------------
+-- Trims all leading and trailing whitespace from a string, returing the 
+-- resulting the resulting value.
+------------------------------------------------------------------------------------
+function string_trim(s)
+    if type(s) == 'string' and #s > 0 then
+        return string.match(s, '^()%s*$') and '' or string.match(s, '^%s*(.*%S)')
+    end
+
+    return ''
+ end
+
+ ------------------------------------------------------------------------------------
+ -- Splits a delimited list of inputs into an array of distinct values. If no
+ -- delimiter is specified, the vertical bar (|) character will be used.
+ ------------------------------------------------------------------------------------
+function split_input(input, delimiter)
+    input = string_trim(input)
+    delimiter = delimiter or '|'
+
+    local output = {}
+
+    if #delimiter > 0 then
+        while true do
+            -- If there are no more bar, then we're done
+            local i = string.find(input, delimiter, 1, true)
+            if not i then
+                break
+            end
+
+            -- If the delimiter isn't the first character we find, we'll
+            -- grab the next substring. Note that consecutive delimiters
+            -- will result in skipped entries rather than empty ones.
+            if i > 1 then
+                local cur = string_trim(string.sub(input, 1, i - 1))
+                if cur ~= '' then
+                    table.insert(output, cur)
+                end
+            end
+
+            input = string.sub(input, i + #delimiter)
+        end
+    end
+
+    -- Any string remaining in input at this point will be trimmed and added,
+    -- as long as it is not empty
+    input = string_trim(input)
+    if input ~= '' then
+        table.insert(output, input)
+    end
+
+    return output
+end
+
 function get_item_res(item)
     for k,v in pairs(res_items) do
         if (v.en:lower() == item or v.enl:lower() == item) and not v.flags['No NPC Sale'] then
@@ -196,15 +250,17 @@ function sell_npc_auto_command(command, ...)
             --
             -- Adds an item to the auto sell list
             --
-            local name = table.concat(commands, ' ')
-            local item = is_valid_item(name)
-            if item then
-                windower.add_to_chat(207, '%s: Adding "%s" to the auto-sell list.':format(_addon.name, item.name))
-                settings.auto_list[item.id] = {id = item.id, name = item.name}
+            local names = split_input(table.concat(commands, ' '))
+            for i, name in ipairs(names) do
+                local item = is_valid_item(name)
+                if item then
+                    windower.add_to_chat(207, '%s: Adding "%s" to the auto-sell list.':format(_addon.name, item.name))
+                    settings.auto_list[item.id] = {id = item.id, name = item.name}
 
-                save_changes = true
-            else
-                windower.add_to_chat(207, '%s: "%s" is not a valid item name.':format(_addon.name, name))
+                    save_changes = true
+                else
+                    windower.add_to_chat(207, '%s: "%s" is not a valid item name.':format(_addon.name, name))
+                end
             end
         elseif command == 'remove' then
             --
@@ -266,7 +322,10 @@ function sell_npc_command(...)
         end
         windower.add_to_chat(207, '%s: Loaded profile "%s"':format(_addon.name, commands[1]))
     else
-        check_item(table.concat(commands,' '))
+        local names = split_input(table.concat(commands, ' '))
+        for i, name in ipairs(names) do
+            check_item(name)
+        end
     end
 end
 
